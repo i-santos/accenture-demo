@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html ng-app="app" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accenture - Nokia</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.0/angular.min.js"></script>
+    <style>
+      #app {
+        display: flex;
+        justify-content: center;
+      }
+      .nokia {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+
+        margin: 0 auto;
+        border: 1px solid #212123;
+      }
+      .nokia > div {
+        padding: 10px 0;
+      }
+      .nokia .display {
+        height: 100px;
+        width: calc(100% - 20px);
+        margin: 10px;
+        border: 1px solid #cccccc;
+        border-radius: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .nokia .buttons {
+        margin: 0 auto;
+        background-color: #eeeeee;
+        display: grid;
+        grid-template-columns: 100px 100px 100px;
+        grid-template-rows: 50px 50px 50px 50px;
+      }
+
+      .nokia .buttons button {
+        position: relative;
+        padding: 0;
+        border: 0;
+        margin: 3px;
+        border-radius: 10px;
+        box-shadow: 1px 1px 5px black;
+        overflow: hidden;
+      }
+      .nokia .buttons button img {
+        width: calc(100% + 2px);
+        height: calc(100% + 2px);
+        object-fit: cover;
+        border: 0;
+        margin: -1px;
+      }
+      .nokia .buttons button img:not([src]) {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+  <body id="app">
+    <div class="nokia" ng-controller="NokiaController">
+      <div class="display">{{ display }}</div>
+      <div class="buttons">
+        <button ng-click="clickBtn('1')" class="button">
+          <img src="/assets/images/1.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('2')" class="button">
+          <img src="/assets/images/2.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('3')" class="button">
+          <img src="/assets/images/3.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('4')" class="button">
+          <img src="/assets/images/4.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('5')" class="button">
+          <img src="/assets/images/5.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('6')" class="button">
+          <img src="/assets/images/6.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('7')" class="button">
+          <img src="/assets/images/7.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('8')" class="button">
+          <img src="/assets/images/8.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('9')" class="button">
+          <img src="/assets/images/9.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('*')" class="button">
+          <img src="/assets/images/ast.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('0')" class="button">
+          <img src="/assets/images/0.png" alt="" />
+        </button>
+        <button ng-click="clickBtn('#')" class="button">
+          <img src="/assets/images/hash.png" alt="" />
+        </button>
+      </div>
+      <div class="submit">
+        <button ng-click="send()">Enviar</button>
+      </div>
+    </div>
+
+    <script>
+      // inicar angular
+      var app = angular.module("app", []);
+
+      // adicionar controladora
+      app.controller("NokiaController", function ($scope, $http) {
+        // endpoint
+        const ENDPOINT = "https://grupo22.luizmiguel2.repl.co/nokia-3310";
+        // timeout para o nokia entender que próximo clique é a próxima letra
+        const timeToNextLetterMs = 1000;
+        var timeoutToNextLetter = null;
+
+        var clear = false;
+
+        // flag para saber se é clique para próxima letra ou se é a mesma letra
+        var nextLetter = false;
+        var currLetter = "-1";
+
+        // texto completo que será enviado para o back
+        // $scope.display = "";
+
+        // string para apresentar no display do nokia
+        $scope.display = "";
+
+        // função que recebe o clique dos botões
+        $scope.clickBtn = function (btn) {
+          if (clear) {
+            $scope.display = "";
+            clear = false;
+          }
+          // caso seja um clique para a próxima letra, adicionar espaço
+          if (nextLetter || btn !== currLetter) {
+            $scope.display += " ";
+            currLetter = btn;
+          }
+
+          // marcar que não é next letter
+          nextLetter = false;
+
+          // adicionar o botão que acabou de ser clicado
+          $scope.display += btn;
+
+          // verificar se ainda não passou o tempo para a próxima letra
+          if (timeoutToNextLetter !== null) {
+            clearTimeout(timeoutToNextLetter);
+          }
+
+          // iniciar temporizador para indicar próxima letra
+          timeoutToNextLetter = setTimeout(() => {
+            nextLetter = true;
+
+            // limpar timeout
+            clearTimeout(timeoutToNextLetter);
+            timeoutToNextLetter = null;
+          }, timeToNextLetterMs);
+        };
+
+        $scope.send = function () {
+          const query = $scope.display.trim();
+          $http
+            .get(ENDPOINT + `?texto=${query}`)
+            .then((res) => {
+              console.log("endpoint: ", ENDPOINT + `?texto=${query}`);
+              $scope.display = res.data.message;
+              clear = true;
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+
+          // $http
+          //   .post(ENDPOINT, $scope.display)
+          //   .then((res) => {
+          //     $scope.display = res.data;
+          //   })
+          //   .catch((err) => {
+          //     console.log(err);
+          //   });
+        };
+      });
+    </script>
+  </body>
+</html>
