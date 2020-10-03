@@ -164,11 +164,12 @@
         };
 
         $scope.send = function () {
-          const query = $scope.display.trim();
+          const query = encodeURIComponent($scope.display.trim());
+          const req = ENDPOINT + `?texto=${query}`;
+          console.log(req);
           $http
-            .get(ENDPOINT + `?texto=${query}`)
+            .get(req)
             .then((res) => {
-              console.log("endpoint: ", ENDPOINT + `?texto=${query}`);
               $scope.display = res.data.message;
               clear = true;
             })
